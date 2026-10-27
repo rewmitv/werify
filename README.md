@@ -2,82 +2,39 @@
 
 Check before you share. / Vérifiez avant de partager. / Verifica antes de compartir.
 
-First source-code package for https://github.com/rewmitv/werify.
-Prepared October 24, 2026. This is a UI starter, not the completed hackathon submission.
+## Run locally on Windows
 
-## Run
+1. Install Node.js 22 or later.
+2. In this folder, create a private file named `.env`, containing `MODEL_API_KEY=` followed by your full Meta secret key. Never upload this file or put it under public/.
+3. Run `npm start` and open http://localhost:3000.
 
-Install Node.js 22 or later. No packages or API keys are needed for this version.
+The server reads `.env` automatically. No npm dependencies are needed. It binds to 127.0.0.1 for local use. Close any older running Wérify server before restarting. A success message about finding a saved key only confirms that a value was read; a successful real API request is required to confirm the credentials.
 
-```sh
-npm start
-```
+## Current features
 
-Open http://localhost:3000. To change the port, set the `PORT` environment variable.
-Do not open index.html directly: the browser modules and API need the server.
+- French, English and Spanish interface.
+- Text claim research through Meta Responses API using muse-spark-1.3 and built-in web_search.
+- Reports with numbered native citation annotations, source links and the passages those citations support. These passages are from the AI answer, not quotations of the source pages.
+- An answer is withheld unless an actual search call and safe citation annotations are returned. This checks grounding metadata, not whether a conclusion is true. Users must inspect the sources.
+- Editable research notes with copy and TXT download; this initial draft reuses the report and source list, rather than generating a separate social post.
+- A clearly separate fictional example, still usable without an API key.
+- Screenshot preview only; screenshot text must be entered manually. Images stay in the browser.
 
-```sh
-npm run check
-npm test
-```
+Claims go to Meta for research under Meta's applicable data policy. The app has no database, accounts, claim logs or saved app history. `store:false` requests no Responses API storage; this is not a promise about all provider processing or retention.
 
-## Included
+## Cost and deployment
 
-- Responsive mobile and desktop interface in the approved white/navy/emerald direction.
-- French, English and Spanish switching; entered claim text is preserved.
-- Claim input with a 1,000-character limit.
-- JPG, PNG and WebP screenshot preview with a 10 MB limit.
-- An explicitly fictional report illustrating uncertainty and source details.
-- Editable example drafts in all three languages, copy and TXT download.
-- Node server, input validation, health endpoint and verification API boundary.
-- Automated checks for API behavior, file exposure and translation coverage.
-- GitHub Actions checks on pushes and pull requests.
+Real requests consume API usage. Credit balances and spending alerts are managed in Meta Billing. A spending alert is not a hard cap. Each click makes at most one Meta request with a 3,000-output-token limit and no automatic retries. Search and input tokens can also incur costs.
 
-## What is not connected yet
+This version is for local testing. Before public hosting, add access controls, robust rate limits and a server-side usage budget. The single concurrent request guard and origin check are not a production abuse-prevention system. Never expose the key in browser code or commit `.env`.
 
-**Live Meta AI, evidence retrieval, automatic OCR and production hosting are not connected.**
-`POST /api/verify` returns HTTP 503 with `VERIFICATION_NOT_CONFIGURED` for valid
-claims. It never silently substitutes the example for a real verification.
-The example is opened only through the separate “Explore an example” button.
-The screenshot currently stays in browser memory; users type or paste its text.
-The browser sends only the claim and chosen language to the local API.
+## Development and validation
 
-This starter contains no fabricated live sources, external scripts, databases,
-accounts, persistent uploads, saved history, or analytics. Language and draft
-state are held in memory and reset on reload. The backend does not log claim
-bodies. Hosting infrastructure and future provider retention are separate concerns.
+Run `npm test` and `npm run check`. Tests simulate Meta success, absent grounding, unsafe citations, credential and network errors, and the local HTTP boundary. No real API request is made by the tests. Live account/model access and end-to-end browser testing still need confirmation on the user's laptop.
 
-## Add these files to GitHub
+Based on Meta's official recipe:
+https://github.com/meta-models/meta-model-cookbook/blob/main/01_api_fundamentals/10_search_grounding.ipynb
 
-Extract the ZIP and put the **contents of `werify/`** at the repository root,
-beside/replacing the initial README.md. Include `.github/`, `.gitignore` and
-`.env.example`; mobile file pickers may hide dotfiles, so a connected GitHub
-workflow or a computer is preferable to uploading each file manually.
-The source has not been pushed by creating this package.
+## Hackathon work provenance
 
-## Next development steps
-
-1. Check the final hackathon rules, permitted models, build window and submission requirements.
-2. Connect the authorized Meta model on the server, using the competition's actual API contract.
-3. Retrieve evidence from real sources, retaining links, publication dates and retrieval times.
-4. Validate model output against retrieved evidence; preserve uncertainty and source attribution.
-5. Connect screenshot extraction with editable text review, explicit upload handling and limits.
-6. Add reports and drafts based on the returned evidence. The current demo must remain separate.
-7. Test end-to-end in Chrome and Safari, then deploy a live jury-accessible URL.
-
-Keep API keys in server environment variables. Never put credentials under `public/`
-or commit `.env`. Use deployment-level rate limits before enabling paid APIs publicly.
-
-## Repository structure
-
-```text
-public/              Browser UI, styles and translations
-server.mjs           Static server and API boundary
-tests/               API and localization checks
-.github/workflows/   GitHub automated checks
-docs/                Implementation status and API contract
-```
-
-The original design ZIP remains separate and unchanged by this source package.
-No working Android or iOS app is included. Browser visual QA and real-provider
-integration tests have not yet been performed.
+The original interface starter predates the hackathon building period. The Meta integration, citation handling, live report rendering, local environment loading, and associated tests were added October 27, 2026. Disclose the pre-existing starter and identify new contributions in the submission. Confirm eligibility and scope with organizers; disclosure alone does not establish eligibility. No production hosting, automatic OCR or native mobile app is included.

@@ -1,6 +1,6 @@
 {
-  "name": "werify", "version": "0.1.0", "private": true, "type": "module",
+  "name": "werify", "version": "0.2.0", "private": true, "type": "module",
   "description": "Multilingual claim-checking web app starter",
   "engines": {"node": ">=22"},
-  "scripts": {"start": "node server.mjs", "test": "node --test", "check": "node --check server.mjs && node --check public/app.js && node --check public/i18n.js"}
+  "scripts": {"start": "node server.mjs", "test": "node --test", "check": "node --check server.mjs && node --check meta.mjs && node --check public/app.js && node --check public/i18n.js"}
 }

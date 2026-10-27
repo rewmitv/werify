@@ -1,19 +1,11 @@
-# Current API boundary
+# API
 
-`GET /api/health`: 200, `{ "status": "ok", "liveVerification": false, "version": "0.1.0" }`.
+GET /api/health returns status, version and liveVerification (whether a server key is configured, not a successful account test).
 
-`POST /api/verify`: JSON `{ "claim": "...", "lang": "fr" }`.
-`lang` must be `fr`, `en` or `es`; claim must have 1–1,000 characters after
-whitespace validation. Current response: 503, `{ "error": "VERIFICATION_NOT_CONFIGURED" }`.
-Invalid JSON/input: 400. Body over 8 KiB: 413. No screenshot bytes are accepted.
+POST /api/verify accepts JSON {"claim":"...","lang":"en"}; locales en/fr/es, claim 1–1000 characters, body max 8 KiB. No screenshot uploads.
 
-Before enabling live verification, implement and validate a shared result schema
-for verdict, conclusion, uncertainty, evidence references and source metadata.
-Only retrieved source IDs may be cited; search snippets must be identified as
-snippets rather than as full articles. Missing dates must stay unknown.
-Source content and claims are untrusted data, never model instructions.
-Do not derive a verdict from a successful model response alone.
+200 returns {grounded, text, sources, claim, lang, model}. Each source has url, title, passage. Passage is the cited span of the AI answer, not a quote from a fetched source. With no completed search or usable native citations, grounded=false, text="", sources=[]. UI withholds the answer in that case. Source links are HTTP/HTTPS only. Model content renders as plain text.
 
-The browser intentionally does not handle a future success response yet. Replace
-that branch together with the new schema and corresponding tests when the real
-integration is implemented. Preserve the fictional example as a separate route.
+Errors: 400 invalid input/JSON; 413 oversized body; 503 missing key; 429 concurrent/rate-limited; 502 provider/auth/billing/network/incomplete/invalid response. Raw provider error details and keys never go to the browser. Cross-origin browser submissions are refused.
+
+meta.mjs uses https://api.meta.ai/v1/responses with server-side Bearer auth, muse-spark-1.3, web_search and native url_citation annotations. It makes one request without retries, with a 90-second timeout. The client waits up to 100 seconds. Data lives only in memory within the app. Provider processing is separate.
