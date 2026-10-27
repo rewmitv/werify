@@ -1,6 +1,6 @@
 import {translations} from './i18n.js';
 const $=id=>document.getElementById(id);
-let lang='fr', imageUrl=null, demoVisible=false, busy=false, messageKey=null;
+let lang='en', imageUrl=null, demoVisible=false, busy=false, messageKey=null;
 let draftBuffers={};
 let liveReport=null;
 function liveDraft(){return t('liveReview')+'\n\n'+liveReport.text+'\n\n'+liveReport.sources.map((source,i)=>`[${i+1}] ${source.title} — ${source.url}`).join('\n');}
