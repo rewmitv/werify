@@ -12,11 +12,12 @@ The server reads `.env` automatically. No npm dependencies are needed. It binds 
 
 ## Current features
 
-- French, English and Spanish interface.
+- English by default, with French and Spanish language buttons.
 - Text claim research through Meta Responses API using muse-spark-1.3 and built-in web_search.
 - Reports with numbered native citation annotations, source links and the passages those citations support. These passages are from the AI answer, not quotations of the source pages.
 - An answer is withheld unless an actual search call and safe citation annotations are returned. This checks grounding metadata, not whether a conclusion is true. Users must inspect the sources.
-- Editable research notes with copy and TXT download; this initial draft reuses the report and source list, rather than generating a separate social post.
+- Concise assessment, correction, evidence and uncertainty sections when the model returns the required format. A separate short cited post can be edited, copied and downloaded as TXT. If the format is missing, the app shows the cited research without a verdict badge and reuses it as research notes.
+- Intermediate provider messages marked as commentary are excluded. Assessment labels are model judgments, not independently verified truth.
 - A clearly separate fictional example, still usable without an API key.
 - Screenshot preview only; screenshot text must be entered manually. Images stay in the browser.
 
@@ -30,11 +31,11 @@ This version is for local testing. Before public hosting, add access controls, r
 
 ## Development and validation
 
-Run `npm test` and `npm run check`. Tests simulate Meta success, absent grounding, unsafe citations, credential and network errors, and the local HTTP boundary. No real API request is made by the tests. Live account/model access and end-to-end browser testing still need confirmation on the user's laptop.
+Run `npm test` and `npm run check`. Tests simulate Meta success, absent grounding, unsafe citations, credential and network errors, and the local HTTP boundary. No real API request is made by the tests. Earlier live text research and TXT download were confirmed on the user's laptop. Version 0.3 report formatting still needs a live laptop check.
 
 Based on Meta's official recipe:
 https://github.com/meta-models/meta-model-cookbook/blob/main/01_api_fundamentals/10_search_grounding.ipynb
 
 ## Hackathon work provenance
 
-The original interface starter predates the hackathon building period. The Meta integration, citation handling, live report rendering, local environment loading, and associated tests were added October 27, 2026. Disclose the pre-existing starter and identify new contributions in the submission. Confirm eligibility and scope with organizers; disclosure alone does not establish eligibility. No production hosting, automatic OCR or native mobile app is included.
+The original interface starter predates the hackathon building period. The Meta integration, citation handling, live report rendering, local environment loading, and associated tests were added October 27, 2026. Structured report formatting and short corrected drafts were added October 31, 2026. Disclose the pre-existing starter and identify new contributions in the submission. Confirm eligibility and scope with organizers; disclosure alone does not establish eligibility. No production hosting, automatic OCR or native mobile app is included.

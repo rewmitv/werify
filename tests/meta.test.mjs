@@ -35,3 +35,26 @@ test('HTTP integration returns research and rejects cross-origin paid requests',
   const bad=await fetch(base+'/api/verify',{...opts,headers:{Origin:'https://evil.example'}});assert.equal(bad.status,403);assert.equal(calls,1);
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
+function structuredResult(assessment='CONTRADICTED'){
+ const text=`[[ASSESSMENT]]\n${assessment}\n[[CORRECTION]]\nThe device uses USB-C.\n[[EVIDENCE]]\nManufacturer lists USB-C.\n[[UNCERTAINTY]]\nCharging speed was not checked.\n[[DRAFT]]\nThe device uses USB-C, according to the manufacturer.`;
+ const annotations=['Manufacturer lists USB-C.','The device uses USB-C, according to the manufacturer.'].map(passage=>({type:'url_citation',url:'https://example.com/specs',title:'Official specs',start_index:text.indexOf(passage),end_index:text.indexOf(passage)+passage.length}));
+ return {status:'completed',output:[{type:'web_search_call',status:'completed'},{type:'message',phase:'commentary',content:[{type:'output_text',text:'I will search now.'}]},{type:'message',phase:'final_answer',content:[{type:'output_text',text,annotations}]}]};
+}
+test('structured report uses final cited answer and separate short draft',()=>{
+ for(const assessment of ['SUPPORTED','CONTRADICTED','INSUFFICIENT']){
+  const parsed=parseResearch(structuredResult(assessment));
+  assert.equal(parsed.report.assessment,assessment.toLowerCase());assert.equal(parsed.sources.length,1);
+  assert.match(parsed.report.draft,/manufacturer\.\[1\]/);assert.doesNotMatch(parsed.text,/I will search/);
+  assert.equal(parsed.report.correction,'The device uses USB-C.');
+ }
+});
+test('incomplete formats and uncited drafts fall back without inventing verdicts',()=>{
+ const missingDraft=structuredResult();missingDraft.output[2].content[0].annotations.pop();
+ assert.equal(parseResearch(missingDraft).report,undefined);
+ const badAssessment=structuredResult('DEFINITELY TRUE');assert.equal(parseResearch(badAssessment).report,undefined);
+ const absentSearch=structuredResult();absentSearch.output.shift();assert.equal(parseResearch(absentSearch).grounded,false);
+});
+test('citations in commentary cannot ground an uncited final answer',()=>{
+ const data=structuredResult();data.output[1]=result().output[1];data.output[1].phase='commentary';data.output[2].content[0].annotations=[];
+ assert.equal(parseResearch(data).grounded,false);
+});

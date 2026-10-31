@@ -40,3 +40,10 @@ const liveTranslations={
 };
 for(const lang of Object.keys(liveTranslations))Object.assign(translations[lang],liveTranslations[lang]);
 
+
+const reportTranslations={
+ en:{assessmentsupported:'Evidence supports this claim',assessmentcontradicted:'Evidence contradicts this claim',assessmentinsufficient:'Insufficient evidence',correction:'What the evidence supports',evidence:'Key evidence',uncertainty:'What remains uncertain'},
+ fr:{assessmentsupported:'Les sources appuient cette affirmation',assessmentcontradicted:'Les sources contredisent cette affirmation',assessmentinsufficient:'Preuves insuffisantes',correction:'Ce que les sources permettent de dire',evidence:'Éléments clés',uncertainty:'Ce qui reste incertain'},
+ es:{assessmentsupported:'Las fuentes respaldan esta afirmación',assessmentcontradicted:'Las fuentes contradicen esta afirmación',assessmentinsufficient:'Pruebas insuficientes',correction:'Lo que respaldan las fuentes',evidence:'Pruebas clave',uncertainty:'Lo que sigue sin confirmarse'}
+};
+for(const lang of Object.keys(reportTranslations))Object.assign(translations[lang],reportTranslations[lang]);

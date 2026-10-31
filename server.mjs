@@ -15,7 +15,7 @@ export function createServer({apiKey=process.env.MODEL_API_KEY,fetchImpl=fetch}=
   res.setHeader('Content-Security-Policy',"default-src 'self'; img-src 'self' blob: data:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
   try {
     const url = new URL(req.url,'http://localhost');
-    if(url.pathname==='/api/health' && req.method==='GET') return json(res,200,{status:'ok',liveVerification:Boolean(apiKey),version:'0.2.0'});
+    if(url.pathname==='/api/health' && req.method==='GET') return json(res,200,{status:'ok',liveVerification:Boolean(apiKey),version:'0.3.0'});
     if(url.pathname==='/api/verify' && req.method==='POST') {
       let body='';
       for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>8192)return json(res,413,{error:'INPUT_TOO_LARGE'});}

@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 let lang='en', imageUrl=null, demoVisible=false, busy=false, messageKey=null;
 let draftBuffers={};
 let liveReport=null;
-function liveDraft(){return t('liveReview')+'\n\n'+liveReport.text+'\n\n'+liveReport.sources.map((source,i)=>`[${i+1}] ${source.title} — ${source.url}`).join('\n');}
+function liveDraft(){return t('liveReview')+'\n\n'+(liveReport.report?.draft||liveReport.text)+'\n\n'+liveReport.sources.map((source,i)=>`[${i+1}] ${source.title} — ${source.url}`).join('\n');}
 function t(key){return translations[lang][key]||key;}
 function showMessage(key){messageKey=key;$('message').textContent=t(key);$('message').hidden=false;}
 function render(){
@@ -59,7 +59,7 @@ $('draft').addEventListener('input',()=>draftBuffers[lang]=$('draft').value);
 $('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('draft').value);$('draft-message').textContent=t('copied');}catch{$('draft-message').textContent=t('copyFailed');$('draft').focus();$('draft').select();}});
 $('download').addEventListener('click',()=>{
  const url=URL.createObjectURL(new Blob([$ ('draft').value],{type:'text/plain;charset=utf-8'}));
- const a=document.createElement('a');a.href=url;a.download=`werify-${liveReport?'research':'example'}-${lang}.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('draft-message').textContent=t('downloaded');
+ const a=document.createElement('a');a.href=url;a.download=`werify-${liveReport?'draft':'example'}-${liveReport?.lang||lang}.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('draft-message').textContent=t('downloaded');
 });
 $('claim-form').addEventListener('submit',async event=>{
  event.preventDefault();if(busy)return;
@@ -84,7 +84,13 @@ function renderLive(){
  add('div',t('liveBadge')+' · '+liveReport.model+' · '+liveReport.lang.toUpperCase(),'notice');
  add('p',t('liveReview'),'hint');
  add('h3',liveReport.claim,'sample-claim');
- add('p',liveReport.text,'research-text');
+ if(liveReport.report){
+  const report=liveReport.report;
+  add('p',t('assessment'+report.assessment),'assessment '+report.assessment);
+  for(const [key,value] of [['correction',report.correction],['evidence',report.evidence],['uncertainty',report.uncertainty]]){
+   add('h4',t(key));add('p',value,'research-text');
+  }
+ }else add('p',liveReport.text,'research-text');
  add('h4',t('sources'));
  liveReport.sources.forEach((source,i)=>{
   const card=add('div','','source-detail');
