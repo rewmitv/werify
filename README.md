@@ -39,3 +39,7 @@ https://github.com/meta-models/meta-model-cookbook/blob/main/01_api_fundamentals
 ## Hackathon work provenance
 
 The original interface starter predates the hackathon building period. The Meta integration, citation handling, live report rendering, local environment loading, and associated tests were added October 27, 2026. Structured report formatting and short corrected drafts were added October 31, 2026. Disclose the pre-existing starter and identify new contributions in the submission. Confirm eligibility and scope with organizers; disclosure alone does not establish eligibility. No production hosting, automatic OCR or native mobile app is included.
+
+## Reliability checks (0.3.1)
+
+Live 0.3 testing confirmed a contradicted assessment and corrected draft with an Apple citation. Intermittent failures also occurred, including the ambiguous-claim test. Their cause is not yet established. Version 0.3.1 adds distinct translated errors and safe error codes to diagnose these failures without displaying credentials or raw provider responses. No automatic paid retries are added. The ambiguous-claim acceptance test remains open.

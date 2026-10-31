@@ -1,18 +1,19 @@
 import {translations} from './i18n.js';
 const $=id=>document.getElementById(id);
-let lang='en', imageUrl=null, demoVisible=false, busy=false, messageKey=null;
+let lang='en', imageUrl=null, demoVisible=false, busy=false, messageKey=null, messageCode='';
 let draftBuffers={};
 let liveReport=null;
 function liveDraft(){return t('liveReview')+'\n\n'+(liveReport.report?.draft||liveReport.text)+'\n\n'+liveReport.sources.map((source,i)=>`[${i+1}] ${source.title} — ${source.url}`).join('\n');}
 function t(key){return translations[lang][key]||key;}
-function showMessage(key){messageKey=key;$('message').textContent=t(key);$('message').hidden=false;}
+function messageText(){return t(messageKey)+(messageCode?` (${messageCode})`:'');}
+function showMessage(key,code=''){messageKey=key;messageCode=code;$('message').textContent=messageText();$('message').hidden=false;}
 function render(){
  document.documentElement.lang=lang;
  document.title=`Wérify — ${t('headline')}`;
  document.querySelectorAll('[data-t]').forEach(el=>el.textContent=t(el.dataset.t));
  document.querySelectorAll('[data-lang]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.lang===lang)));
  $('claim').placeholder=t('placeholder');$('image-preview').alt=t('screenshot');
- if(messageKey)$('message').textContent=t(messageKey);
+ if(messageKey)$('message').textContent=messageText();
  $('verify').textContent=t(busy?'checking':'verify');
  if(!$('draft-panel').hidden)$('draft').value=draftBuffers[lang]??(liveReport?liveDraft():t('sampleDraft'));
  if(liveReport){document.querySelector('[data-t=reviewDetail]').textContent=t('liveReview');if(!$('live-report').hidden)renderLive();}
@@ -71,7 +72,11 @@ $('claim-form').addEventListener('submit',async event=>{
  try{
   const response=await fetch('/api/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({claim,lang}),signal:AbortSignal.timeout(100000)});
   const data=await response.json();
-  if(!response.ok){showMessage(({VERIFICATION_NOT_CONFIGURED:'notConfigured',META_AUTH_ERROR:'authError',META_BILLING_ERROR:'billingError',META_RATE_LIMIT:'rateError'})[data.error]||'serviceError');return;}
+  if(!response.ok){
+   const errors={VERIFICATION_NOT_CONFIGURED:'notConfigured',META_AUTH_ERROR:'authError',META_BILLING_ERROR:'billingError',META_RATE_LIMIT:'rateError',META_TIMEOUT:'timeoutError',META_UNREACHABLE:'upstreamNetworkError',META_SERVICE_ERROR:'providerError',META_REQUEST_REJECTED:'requestError',META_INVALID_RESPONSE:'invalidResponseError',INCOMPLETE_RESEARCH:'incompleteError',META_REQUEST_FAILED:'serviceError'};
+   const known=Object.hasOwn(errors,data.error);
+   showMessage(known?errors[data.error]:'serviceError',known?data.error:`HTTP_${response.status}`);return;
+  }
   if(!data.grounded){showMessage('noEvidence');return;}
   liveReport=data;$('message').hidden=true;messageKey=null;$('empty-report').hidden=true;$('live-report').hidden=false;
   renderLive();$('report-panel').scrollIntoView({behavior:'smooth',block:'start'});

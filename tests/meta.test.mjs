@@ -58,3 +58,12 @@ test('citations in commentary cannot ground an uncited final answer',()=>{
  const data=structuredResult();data.output[1]=result().output[1];data.output[1].phase='commentary';data.output[2].content[0].annotations=[];
  assert.equal(parseResearch(data).grounded,false);
 });
+
+test('distinguishes provider failures, timeouts and incomplete responses without leaking details',async()=>{
+ for(const [status,code] of [[400,'META_REQUEST_REJECTED'],[422,'META_REQUEST_REJECTED'],[500,'META_SERVICE_ERROR'],[503,'META_SERVICE_ERROR'],[429,'META_RATE_LIMIT'],[402,'META_BILLING_ERROR']]){
+  await assert.rejects(()=>researchClaim({claim:'x',lang:'en'},{apiKey:'test-secret',fetchImpl:async()=>new Response('private provider details',{status})}),{message:code});
+ }
+ await assert.rejects(()=>researchClaim({claim:'x',lang:'en'},{apiKey:'test-secret',fetchImpl:async()=>{throw new DOMException('private timeout details','TimeoutError');}}),{message:'META_TIMEOUT'});
+ await assert.rejects(()=>researchClaim({claim:'x',lang:'en'},{apiKey:'test-secret',fetchImpl:async()=>Response.json(result({status:'incomplete'}))}),{message:'INCOMPLETE_RESEARCH'});
+ await assert.rejects(()=>researchClaim({claim:'x',lang:'en'},{apiKey:'test-secret',fetchImpl:async()=>new Response('not JSON')}),{message:'META_INVALID_RESPONSE'});
+});

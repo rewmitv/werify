@@ -59,11 +59,13 @@ export async function researchClaim({claim,lang},{apiKey,fetchImpl=fetch,model='
         {role:'user',content:JSON.stringify({claim})}
       ]})
     });
-  }catch{throw new MetaError('META_UNREACHABLE');}
+  }catch(error){throw new MetaError(error?.name==='TimeoutError' || error?.name==='AbortError'?'META_TIMEOUT':'META_UNREACHABLE');}
   if(!response.ok){
     if(response.status===401 || response.status===403)throw new MetaError('META_AUTH_ERROR',502);
     if(response.status===402)throw new MetaError('META_BILLING_ERROR',502);
     if(response.status===429)throw new MetaError('META_RATE_LIMIT',429);
+    if(response.status>=500)throw new MetaError('META_SERVICE_ERROR');
+    if(response.status===400 || response.status===422)throw new MetaError('META_REQUEST_REJECTED');
     throw new MetaError('META_REQUEST_FAILED');
   }
   let data;try{data=await response.json();}catch{throw new MetaError('META_INVALID_RESPONSE');}
