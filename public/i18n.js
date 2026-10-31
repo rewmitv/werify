@@ -54,3 +54,10 @@ const diagnosticTranslations={
  es:{timeoutError:'Meta no respondió dentro del plazo. No se produjo ninguna conclusión.',upstreamNetworkError:'El servidor Wérify no pudo conectarse con Meta. No se produjo ninguna conclusión.',providerError:'Meta devolvió un error de servicio. No se produjo ninguna conclusión. Inténtalo más tarde.',requestError:'Meta rechazó la solicitud. Es necesario revisar la configuración.',invalidResponseError:'Meta devolvió una respuesta ilegible. No se produjo ninguna conclusión.',incompleteError:'Meta devolvió una respuesta incompleta. No se muestra ninguna conclusión parcial.',serviceError:'La solicitud de investigación falló. No se produjo ninguna conclusión.'}
 };
 for(const lang of Object.keys(diagnosticTranslations))Object.assign(translations[lang],diagnosticTranslations[lang]);
+
+const clarificationTranslations={
+ en:{needsContext:'More information needed',clarificationHint:'This is a request for details, not a verification result. Add the missing information to your claim and check again.',outputLimitError:'Meta reached the response output limit before finishing. No partial conclusion has been shown.'},
+ fr:{needsContext:'Précisions nécessaires',clarificationHint:'Il s’agit d’une demande de précisions, pas d’un résultat de vérification. Complétez votre affirmation puis relancez la vérification.',outputLimitError:'Meta a atteint la limite de sortie avant de terminer. Aucune conclusion partielle affichée.'},
+ es:{needsContext:'Se necesita más información',clarificationHint:'Esta es una solicitud de detalles, no un resultado de verificación. Añade la información que falta y vuelve a verificar.',outputLimitError:'Meta alcanzó el límite de salida antes de terminar. No se muestra ninguna conclusión parcial.'}
+};
+for(const lang of Object.keys(clarificationTranslations))Object.assign(translations[lang],clarificationTranslations[lang]);

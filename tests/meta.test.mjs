@@ -17,7 +17,7 @@ test('Meta requests use server-only auth, web search, token bound and no storage
  let calls=0;
  const data=await researchClaim({claim:'Test claim',lang:'en'},{apiKey:'test-secret',fetchImpl:async(url,opts)=>{
   calls++;assert.equal(url,'https://api.meta.ai/v1/responses');assert.equal(opts.headers.Authorization,'Bearer test-secret');
-  const body=JSON.parse(opts.body);assert.equal(body.tools[0].type,'web_search');assert.equal(body.store,false);assert.equal(body.max_output_tokens,3000);assert.match(body.input[1].content,/Test claim/);
+  const body=JSON.parse(opts.body);assert.equal(body.tools[0].type,'web_search');assert.equal(body.store,false);assert.equal(body.max_output_tokens,6000);assert.match(body.input[1].content,/Test claim/);
   return Response.json(result());
  }});
  assert.equal(calls,1);assert.equal(data.grounded,true);assert.equal(JSON.stringify(data).includes('test-secret'),false);
@@ -66,4 +66,28 @@ test('distinguishes provider failures, timeouts and incomplete responses without
  await assert.rejects(()=>researchClaim({claim:'x',lang:'en'},{apiKey:'test-secret',fetchImpl:async()=>{throw new DOMException('private timeout details','TimeoutError');}}),{message:'META_TIMEOUT'});
  await assert.rejects(()=>researchClaim({claim:'x',lang:'en'},{apiKey:'test-secret',fetchImpl:async()=>Response.json(result({status:'incomplete'}))}),{message:'INCOMPLETE_RESEARCH'});
  await assert.rejects(()=>researchClaim({claim:'x',lang:'en'},{apiKey:'test-secret',fetchImpl:async()=>new Response('not JSON')}),{message:'META_INVALID_RESPONSE'});
+});
+
+function clarificationResult(text='[[NEEDS_CONTEXT]]\nWhich phone model do you mean, and which phones or battery test are you comparing it with?'){
+ return {status:'completed',output:[{type:'message',phase:'final_answer',content:[{type:'output_text',text,annotations:[]}]}]};
+}
+test('missing context requests details without asserting a sourced conclusion',()=>{
+ const parsed=parseResearch(clarificationResult());
+ assert.equal(parsed.grounded,false);assert.equal(parsed.text,'');assert.deepEqual(parsed.sources,[]);assert.equal(parsed.report,undefined);
+ assert.match(parsed.clarification,/Which phone model/);
+ for(const text of ['[[NEEDS_CONTEXT]]','[[NEEDS_CONTEXT]] '+ 'x'.repeat(601),'[[NEEDS_CONTEXT]] https://example.com','[[NEEDS_CONTEXT]] Example [1]','[[NEEDS_CONTEXT]] Which model? [[DRAFT]] Something'])assert.equal(parseResearch(clarificationResult(text)).clarification,undefined);
+ const partial=clarificationResult();partial.status='incomplete';assert.throws(()=>parseResearch(partial),/INCOMPLETE_RESEARCH/);
+});
+test('output exhaustion is distinguished from other unfinished responses',()=>{
+ assert.throws(()=>parseResearch({status:'incomplete',incomplete_details:{reason:'max_output_tokens'}}),/META_OUTPUT_LIMIT/);
+ assert.throws(()=>parseResearch({status:'incomplete',incomplete_details:{reason:'private reason'}}),/INCOMPLETE_RESEARCH/);
+ assert.throws(()=>parseResearch(null),/META_INVALID_RESPONSE/);
+});
+test('HTTP returns clarification without fabricated grounding or sources',async()=>{
+ let calls=0;const server=createServer({apiKey:'test-secret',fetchImpl:async()=>{calls++;return Response.json(clarificationResult());}});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ try{
+  const response=await fetch(`http://127.0.0.1:${server.address().port}/api/verify`,{method:'POST',body:JSON.stringify({claim:'This phone has the best battery life.',lang:'en'})});
+  const data=await response.json();assert.equal(response.status,200);assert.equal(data.grounded,false);assert.match(data.clarification,/Which phone model/);assert.deepEqual(data.sources,[]);assert.equal(calls,1);
+ }finally{await new Promise(resolve=>server.close(resolve));}
 });

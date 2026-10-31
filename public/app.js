@@ -73,9 +73,13 @@ $('claim-form').addEventListener('submit',async event=>{
   const response=await fetch('/api/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({claim,lang}),signal:AbortSignal.timeout(100000)});
   const data=await response.json();
   if(!response.ok){
-   const errors={VERIFICATION_NOT_CONFIGURED:'notConfigured',META_AUTH_ERROR:'authError',META_BILLING_ERROR:'billingError',META_RATE_LIMIT:'rateError',META_TIMEOUT:'timeoutError',META_UNREACHABLE:'upstreamNetworkError',META_SERVICE_ERROR:'providerError',META_REQUEST_REJECTED:'requestError',META_INVALID_RESPONSE:'invalidResponseError',INCOMPLETE_RESEARCH:'incompleteError',META_REQUEST_FAILED:'serviceError'};
+   const errors={VERIFICATION_NOT_CONFIGURED:'notConfigured',META_AUTH_ERROR:'authError',META_BILLING_ERROR:'billingError',META_RATE_LIMIT:'rateError',META_TIMEOUT:'timeoutError',META_UNREACHABLE:'upstreamNetworkError',META_SERVICE_ERROR:'providerError',META_REQUEST_REJECTED:'requestError',META_INVALID_RESPONSE:'invalidResponseError',INCOMPLETE_RESEARCH:'incompleteError',META_OUTPUT_LIMIT:'outputLimitError',META_REQUEST_FAILED:'serviceError'};
    const known=Object.hasOwn(errors,data.error);
    showMessage(known?errors[data.error]:'serviceError',known?data.error:`HTTP_${response.status}`);return;
+  }
+  if(typeof data.clarification==='string' && data.clarification.length<=600){
+   liveReport=data;$('message').hidden=true;messageKey=null;$('empty-report').hidden=true;$('live-report').hidden=false;
+   renderLive();$('report-panel').scrollIntoView({behavior:'smooth',block:'start'});return;
   }
   if(!data.grounded){showMessage('noEvidence');return;}
   liveReport=data;$('message').hidden=true;messageKey=null;$('empty-report').hidden=true;$('live-report').hidden=false;
@@ -86,6 +90,11 @@ $('claim-form').addEventListener('submit',async event=>{
 function renderLive(){
  const container=$('live-report');container.replaceChildren();
  const add=(tag,text,className)=>{const el=document.createElement(tag);el.textContent=text;if(className)el.className=className;container.append(el);return el;};
+ if(liveReport.clarification){
+  add('h3',t('needsContext'),'assessment insufficient');
+  add('p',liveReport.clarification,'research-text');add('p',t('clarificationHint'),'hint');
+  return;
+ }
  add('div',t('liveBadge')+' · '+liveReport.model+' · '+liveReport.lang.toUpperCase(),'notice');
  add('p',t('liveReview'),'hint');
  add('h3',liveReport.claim,'sample-claim');
