@@ -65,15 +65,18 @@ $('download').addEventListener('click',()=>{
 $('claim-form').addEventListener('submit',async event=>{
  event.preventDefault();if(busy)return;
  const claim=$('claim').value.trim();if(!claim||claim.length>1000){showMessage('invalid');return;}
+ if(!$('access-code-field').hidden&&!$('access-code').value){showMessage('accessCodeError');$('access-code').focus();return;}
  // A previous fictional example must never look like the result for a submitted claim.
  liveReport=null;draftBuffers={};$('live-report').hidden=true;
  demoVisible=false;$('report').hidden=true;$('empty-report').hidden=false;$('draft-panel').hidden=true;
  busy=true;$('verify').disabled=true;showMessage('checking');render();
  try{
-  const response=await fetch('/api/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({claim,lang}),signal:AbortSignal.timeout(100000)});
+  const response=await fetch('/api/verify',{method:'POST',headers:{'Content-Type':'application/json','X-Werify-Access-Code':$('access-code').value},body:JSON.stringify({claim,lang}),signal:AbortSignal.timeout(100000)});
   const data=await response.json();
   if(!response.ok){
    const errors={VERIFICATION_NOT_CONFIGURED:'notConfigured',META_AUTH_ERROR:'authError',META_BILLING_ERROR:'billingError',META_RATE_LIMIT:'rateError',META_TIMEOUT:'timeoutError',META_UNREACHABLE:'upstreamNetworkError',META_SERVICE_ERROR:'providerError',META_REQUEST_REJECTED:'requestError',META_INVALID_RESPONSE:'invalidResponseError',INCOMPLETE_RESEARCH:'incompleteError',META_OUTPUT_LIMIT:'outputLimitError',META_REQUEST_FAILED:'serviceError'};
+   Object.assign(errors,{ACCESS_NOT_CONFIGURED:'accessNotConfigured',ACCESS_CODE_REQUIRED:'accessCodeError',DEMO_USAGE_LIMIT:'demoUsageLimit',DEMO_RATE_LIMIT:'demoRateLimit'});
+   if(data.error==='ACCESS_CODE_REQUIRED'){$('access-code-field').hidden=false;$('access-code').value='';$('access-code').focus();}
    const known=Object.hasOwn(errors,data.error);
    showMessage(known?errors[data.error]:'serviceError',known?data.error:`HTTP_${response.status}`);return;
   }
@@ -119,3 +122,7 @@ function renderLive(){
  });
 }
 render();
+// This only reads configuration. The access code is never returned or saved to browser storage.
+fetch('/api/health').then(response=>response.json()).then(data=>{
+ if(data.accessCodeRequired)$('access-code-field').hidden=false;
+}).catch(()=>{});

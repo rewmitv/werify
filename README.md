@@ -27,7 +27,9 @@ Claims go to Meta for research under Meta's applicable data policy. The app has 
 
 Real requests consume API usage. Credit balances and spending alerts are managed in Meta Billing. A spending alert is not a hard cap. Each click makes at most one Meta request with a 6,000-output-token limit and no automatic retries. Search and input tokens can also incur costs.
 
-This version is for local testing. Before public hosting, add access controls, robust rate limits and a server-side usage budget. The single concurrent request guard and origin check are not a production abuse-prevention system. Never expose the key in browser code or commit `.env`.
+For a restricted hosted demo, version 0.3.3 requires a private access code for live checks on Render. It permits one active Meta request, enforces a 10-second global interval, and allows at most 50 Meta attempts per server run, including provider failures. The code stays server-side; visitors enter it into a password field and the app keeps it only in page memory. The example needs no code. Never expose the Meta key in browser code or commit `.env`.
+
+These are demo controls, not a production billing system: counters reset on restart, redeploy or an additional instance. They are not a durable daily quota or a dollar cap. Share the code privately with reviewers, rotate it if shared too widely, and monitor Meta billing. A broader public launch needs durable shared usage accounting and stronger abuse prevention.
 
 ## Development and validation
 
@@ -38,7 +40,7 @@ https://github.com/meta-models/meta-model-cookbook/blob/main/01_api_fundamentals
 
 ## Hackathon work provenance
 
-The original interface starter predates the hackathon building period. The Meta integration, citation handling, live report rendering, local environment loading, and associated tests were added October 27, 2026. Structured report formatting and short corrected drafts were added October 31, 2026. Disclose the pre-existing starter and identify new contributions in the submission. Confirm eligibility and scope with organizers; disclosure alone does not establish eligibility. No production hosting, automatic OCR or native mobile app is included.
+The original interface starter predates the hackathon building period. The Meta integration, citation handling, live report rendering, local environment loading, and associated tests were added October 27, 2026. Structured report formatting and short corrected drafts were added October 31, 2026. Disclose the pre-existing starter and identify new contributions in the submission. Confirm eligibility and scope with organizers; disclosure alone does not establish eligibility. Automatic OCR and native mobile apps are not included.
 
 ## Reliability checks (0.3.1)
 
@@ -47,3 +49,9 @@ Live 0.3 testing confirmed a contradicted assessment and corrected draft with an
 ## Clarifications (0.3.2)
 
 The model is instructed to request missing context before searching when the subject or comparison is unspecified. A completed, correctly formatted clarification is displayed separately from researched reports, with no verdict, sources or post draft. The prompt requests no search for this path; actual tool use remains provider-controlled. Unfinished responses are still withheld. When Meta reports incomplete_details.reason=max_output_tokens, a distinct output-limit error is shown. The output allowance was raised from 3,000 to 6,000 tokens; this can increase maximum usage per request. No automatic retries. The live cause of the observed incomplete response is not yet confirmed; version 0.3.2 requires a laptop test.
+
+## Render restricted demo (0.3.3)
+
+Use Node 22, build `npm run check`, start `npm start`, root directory empty, and `HOST=0.0.0.0`. Render supplies PORT. Set `WERIFY_ACCESS_CODE` to a private random value of 16-256 characters using Render’s Generate button. Never use your Meta API key as the access code. Then add `MODEL_API_KEY` privately in Render. Keep one instance. Render sets RENDER=true, so a missing access code disables live checks even when a Meta key exists. Health reports configuration only, never validates the provider key. Rotate the access code in Environment to revoke the old code.
+
+Local tests use mocked Meta responses and verify unauthorized requests cannot contact Meta, quotas count failed attempts, overlapping requests are blocked, and the example remains accessible. Public sample report, draft, and TXT export were manually confirmed November 1, 2026.

@@ -1,6 +1,6 @@
 # API
 
-GET /api/health returns status, version and liveVerification (whether a server key is configured, not a successful account test).
+GET /api/health returns status, version and liveVerification (whether a server key and required access configuration are present, not a successful account test).
 
 POST /api/verify accepts JSON {"claim":"...","lang":"en"}; locales en/fr/es, claim 1–1000 characters, body max 8 KiB. No screenshot uploads.
 
@@ -15,3 +15,5 @@ Version 0.3 may also return report: {assessment, correction, evidence, uncertain
 Version 0.3.1 distinguishes META_TIMEOUT, META_UNREACHABLE, META_SERVICE_ERROR (upstream 5xx), META_REQUEST_REJECTED (upstream 400/422), META_INVALID_RESPONSE and INCOMPLETE_RESEARCH. The interface displays only allowlisted error codes (or the local HTTP status), never raw provider messages. A provider failure is not an insufficient-evidence verdict.
 
 Version 0.3.2 can return {grounded:false, text:"", sources:[], clarification, claim, lang, model}. Clarification requests missing input and is not a verification report; do not offer it as a corrected post. Only completed outputs qualify. The output allowance is 6,000 tokens. META_OUTPUT_LIMIT is returned only when an incomplete response explicitly reports max_output_tokens as its reason. Other unfinished statuses retain INCOMPLETE_RESEARCH.
+
+Version 0.3.3 adds accessCodeRequired to health. When configured, POST /api/verify requires X-Werify-Access-Code, compared using fixed-length SHA-256 digests with timingSafeEqual. RENDER=true requires WERIFY_ACCESS_CODE for live checks. A missing hosted access configuration gives 503 ACCESS_NOT_CONFIGURED; a missing/incorrect code gives 401 ACCESS_CODE_REQUIRED. These paths never contact Meta. There is one active request, a global 10-second minimum interval (429 DEMO_RATE_LIMIT, Retry-After header), and 50 Meta attempts per process (429 DEMO_USAGE_LIMIT). Failed provider attempts count; rejected input, unauthorized or unconfigured requests do not. No retries. Counters are in memory and reset on process restart/redeploy; each additional instance has separate counters. These limits do not establish a durable spending cap. The shared code restricts live demo access, not the public UI/example.

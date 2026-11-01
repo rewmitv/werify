@@ -4,3 +4,5 @@
 .research-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65}.source-detail a{color:var(--green,#087e60);overflow-wrap:anywhere}.label{display:block;margin-top:1rem}
 
 .assessment{font-weight:750;padding:16px;border-radius:10px;line-height:1.5;border-left:4px solid currentColor}.assessment.supported{background:#e9f5ef;color:#086449}.assessment.contradicted{background:#fff0ec;color:#9b3524}.assessment.insufficient{background:#fff4dd;color:#85520b}
+
+#access-code{font:inherit;width:100%;border:1px solid #cfd9df;border-radius:10px;padding:12px;background:#fcfdfd;color:#15233a}#access-code:focus-visible{outline:3px solid #34ad90;outline-offset:4px}#access-code-field{margin-bottom:20px}
