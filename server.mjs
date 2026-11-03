@@ -10,7 +10,7 @@ import {resolve, sep, extname} from 'node:path';
 const root = fileURLToPath(new URL('./public/', import.meta.url));
 const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml'};
 function json(res,status,value){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(value));}
-export function createServer({apiKey=process.env.MODEL_API_KEY,fetchImpl=fetch,accessCode=process.env.WERIFY_ACCESS_CODE,requireAccessCode=process.env.RENDER==='true',maxRequests=50,minIntervalMs=10000,now=Date.now}={}){
+export function createServer({apiKey=process.env.MODEL_API_KEY,fetchImpl=fetch,accessCode=undefined,requireAccessCode=false,maxRequests=50,minIntervalMs=10000,now=Date.now}={}){
   if(accessCode && (accessCode.length<16 || accessCode.length>256))throw new Error('WERIFY_ACCESS_CODE must contain 16 to 256 characters.');
   if(!Number.isSafeInteger(maxRequests)||maxRequests<1)throw new Error('Invalid request limit.');
   const digest=value=>createHash('sha256').update(value).digest();
