@@ -16,6 +16,8 @@ export function createServer({apiKey=process.env.MODEL_API_KEY,fetchImpl=fetch,a
   const digest=value=>createHash('sha256').update(value).digest();
   const expected=accessCode?digest(accessCode):null;
   let active=false,requests=0,lastRequest=null;
+  // Short-lived, in-memory reuse only. Never cache failures or clarification requests.
+  const cache=new Map();
   return http.createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Referrer-Policy','no-referrer');
@@ -36,6 +38,10 @@ export function createServer({apiKey=process.env.MODEL_API_KEY,fetchImpl=fetch,a
         const supplied=req.headers['x-werify-access-code'];
         if(typeof supplied!=='string'||supplied.length>256||!timingSafeEqual(digest(supplied),expected))return json(res,401,{error:'ACCESS_CODE_REQUIRED'});
       }
+      const cacheKey=JSON.stringify([input.claim.trim(),input.lang]);
+      const cached=cache.get(cacheKey);
+      if(cached && now()-cached.at<300000)return json(res,200,cached.result);
+      if(cached)cache.delete(cacheKey);
       if(requests>=maxRequests)return json(res,429,{error:'DEMO_USAGE_LIMIT'});
       if(active||(lastRequest!==null&&now()-lastRequest<minIntervalMs)){
         res.setHeader('Retry-After',String(Math.max(1,Math.ceil(minIntervalMs/1000))));
@@ -44,7 +50,16 @@ export function createServer({apiKey=process.env.MODEL_API_KEY,fetchImpl=fetch,a
       // Count attempts before contacting Meta, including paid failures. Never retry automatically.
       requests++;lastRequest=now();
       active=true;
-      try{return json(res,200,await researchClaim(input,{apiKey,fetchImpl}));}
+      try{
+        const started=now();
+        const result=await researchClaim(input,{apiKey,fetchImpl});
+        console.info(JSON.stringify({event:'verification_complete',durationMs:now()-started,grounded:result.grounded,clarification:Boolean(result.clarification)}));
+        if(result.grounded){
+          if(cache.size>=32)cache.delete(cache.keys().next().value);
+          cache.set(cacheKey,{at:now(),result});
+        }
+        return json(res,200,result);
+      }
       catch(error){return json(res,error.status||502,{error:error.code||'META_REQUEST_FAILED'});}
       finally{active=false;}
     }

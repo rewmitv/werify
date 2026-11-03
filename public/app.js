@@ -70,6 +70,8 @@ $('claim-form').addEventListener('submit',async event=>{
  liveReport=null;draftBuffers={};$('live-report').hidden=true;
  demoVisible=false;$('report').hidden=true;$('empty-report').hidden=false;$('draft-panel').hidden=true;
  busy=true;$('verify').disabled=true;showMessage('checking');render();
+ const progressTimer=setTimeout(()=>showMessage('researching'),8000);
+ const slowTimer=setTimeout(()=>showMessage('researchSlow'),30000);
  try{
   const response=await fetch('/api/verify',{method:'POST',headers:{'Content-Type':'application/json','X-Werify-Access-Code':$('access-code').value},body:JSON.stringify({claim,lang}),signal:AbortSignal.timeout(100000)});
   const data=await response.json();
@@ -88,7 +90,7 @@ $('claim-form').addEventListener('submit',async event=>{
   liveReport=data;$('message').hidden=true;messageKey=null;$('empty-report').hidden=true;$('live-report').hidden=false;
   renderLive();$('report-panel').scrollIntoView({behavior:'smooth',block:'start'});
  }catch{showMessage('networkError');}
- finally{busy=false;$('verify').disabled=false;render();}
+ finally{clearTimeout(progressTimer);clearTimeout(slowTimer);busy=false;$('verify').disabled=false;render();}
 });
 function renderLive(){
  const container=$('live-report');container.replaceChildren();

@@ -78,5 +78,8 @@ export async function researchClaim({claim,lang},{apiKey,fetchImpl=fetch,model='
     throw new MetaError('META_REQUEST_FAILED');
   }
   let data;try{data=await response.json();}catch{throw new MetaError('META_INVALID_RESPONSE');}
-  return {...parseResearch(data),claim,lang,model};
+  const parsed=parseResearch(data);
+  // Log response structure only: no claims, generated text, URLs or secrets.
+  console.info(JSON.stringify({event:'meta_research',status:data.status||'unspecified',grounded:parsed.grounded,clarification:Boolean(parsed.clarification),outputTypes:(data.output||[]).map(item=>item.type),citationCount:(data.output||[]).filter(item=>item.type==='message').flatMap(item=>item.content||[]).reduce((n,block)=>n+(block.annotations||[]).filter(a=>a.type==='url_citation').length,0),acceptedSources:parsed.sources.length}));
+  return {...parsed,claim,lang,model};
 }
